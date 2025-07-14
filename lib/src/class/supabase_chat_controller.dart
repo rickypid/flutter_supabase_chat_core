@@ -73,7 +73,7 @@ class SupabaseChatController {
       .select()
       .eq('roomId', int.parse(_room.id))
       .order('createdAt', ascending: false)
-      .range(pageSize * _currentPage, (_currentPage * pageSize) + pageSize);
+      .range(pageSize * _currentPage, (_currentPage * pageSize) + pageSize - 1);
 
   void _onData(
     List<Map<String, dynamic>> newData,

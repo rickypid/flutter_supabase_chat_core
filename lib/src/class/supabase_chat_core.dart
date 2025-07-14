@@ -356,7 +356,7 @@ class SupabaseChatCore {
         : table.select();
     var query = queryUnlimited.order('updatedAt', ascending: false);
     if (offset != null && limit != null) {
-      query = query.range(offset, offset + limit);
+      query = query.range(offset, offset + limit - 1);
     } else if (limit != null) {
       query = query.limit(limit);
     }
@@ -574,7 +574,7 @@ class SupabaseChatCore {
         .order('firstName', ascending: true)
         .order('lastName', ascending: true);
     if (offset != null && limit != null) {
-      query = query.range(offset, offset + limit);
+      query = query.range(offset, offset + limit - 1);
     } else if (limit != null) {
       query = query.limit(limit);
     }
