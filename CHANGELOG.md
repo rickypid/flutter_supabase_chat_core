@@ -1,3 +1,10 @@
+## [1.6.1] - 2026-03-09
+#### [@rickypid](https://github.com/rickypid)
+
+### Fixed
+
+* Make `_focusListener` and `_blurListener` nullable in `WebWidgetsBinding`.
+
 ## [1.6.0] - 2025-06-17
 #### [@rickypid](https://github.com/rickypid)
 
