@@ -7,8 +7,8 @@ import 'platforms_widgets_binding.dart';
 PlatformsWidgetsBinding getInstance() => WebWidgetsBinding();
 
 class WebWidgetsBinding extends PlatformsWidgetsBinding {
-  late JSFunction _focusListener;
-  late JSFunction _blurListener;
+  JSFunction? _focusListener;
+  JSFunction? _blurListener;
 
   @override
   void addObserver(WidgetsBindingObserver state) {
