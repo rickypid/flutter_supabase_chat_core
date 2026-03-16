@@ -11,3 +11,4 @@ These indexes are added to improve the performance of foreign keys in database t
 CREATE INDEX ON "chats"."messages" USING btree ("authorId");
 CREATE INDEX ON "chats"."messages" USING btree ("roomId");
 ```
+

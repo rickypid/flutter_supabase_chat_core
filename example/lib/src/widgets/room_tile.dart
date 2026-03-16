@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -7,8 +7,8 @@ import '../class/message_status_ex.dart';
 import '../util.dart';
 
 class RoomTile extends StatelessWidget {
-  final types.Room room;
-  final ValueChanged<types.Room> onTap;
+  final Room room;
+  final ValueChanged<Room> onTap;
 
   const RoomTile({
     super.key,
@@ -16,12 +16,12 @@ class RoomTile extends StatelessWidget {
     required this.onTap,
   });
 
-  Widget _buildAvatar(types.Room room) {
+  Widget _buildAvatar(Room room) {
     final color = getAvatarColor(room.id);
     var otherUserIndex = -1;
     types.User? otherUser;
 
-    if (room.type == types.RoomType.direct) {
+    if (room.type == RoomType.direct) {
       otherUserIndex = room.users.indexWhere(
         (u) => u.id != SupabaseChatCore.instance.loggedSupabaseUser!.id,
       );
@@ -30,11 +30,11 @@ class RoomTile extends StatelessWidget {
       }
     }
 
-    final hasImage = room.imageUrl != null;
+    final hasImage = room.imageSource != null;
     final name = room.name ?? '';
     final Widget child = CircleAvatar(
       backgroundColor: hasImage ? Colors.transparent : color,
-      backgroundImage: hasImage ? NetworkImage(room.imageUrl!) : null,
+      backgroundImage: hasImage ? NetworkImage(room.imageSource!) : null,
       radius: 20,
       child: !hasImage
           ? Text(
@@ -96,8 +96,9 @@ class RoomTile extends StatelessWidget {
                     timeago.format(
                       DateTime.now().subtract(
                         Duration(
-                          milliseconds: DateTime.now().millisecondsSinceEpoch -
-                              (room.updatedAt ?? 0),
+                          milliseconds: (DateTime.now().millisecondsSinceEpoch -
+                                  (room.updatedAt ?? 0))
+                              .toInt(),
                         ),
                       ),
                       locale: 'en_short',
@@ -109,10 +110,10 @@ class RoomTile extends StatelessWidget {
                       child: Icon(
                         size: 20,
                         room.lastMessages!.first.status!.icon,
-                        color:
-                            room.lastMessages!.first.status == types.Status.seen
-                                ? Colors.lightBlue
-                                : null,
+                        color: room.lastMessages!.first.status ==
+                                types.MessageStatus.seen
+                            ? Colors.lightBlue
+                            : null,
                       ),
                     ),
                 ],

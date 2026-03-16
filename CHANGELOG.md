@@ -1,3 +1,8 @@
+## [2.0.0] - 2026-03-15
+#### [@rickypid](https://github.com/rickypid)
+
+WIP
+
 ## [1.6.1] - 2026-03-09
 #### [@rickypid](https://github.com/rickypid)
 

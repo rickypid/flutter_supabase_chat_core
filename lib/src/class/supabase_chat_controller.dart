@@ -1,18 +1,16 @@
 import 'dart:async';
 
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../../flutter_supabase_chat_core.dart';
 
 /// Provides Supabase chat controller. Instance new class
 /// SupabaseChatController to manage a chat.
-class SupabaseChatController {
-  late types.Room _room;
-  final List<types.Message> _messages = [];
+class SupabaseChatController extends types.InMemoryChatController {
+  late Room _room;
   final int pageSize;
   int _currentPage = 0;
-  final _messagesController = StreamController<List<types.Message>>();
   final _typingController = StreamController<List<types.User>>();
   late RealtimeChannel _typingChannel;
   bool _typingChannelSubscribed = false;
@@ -24,12 +22,12 @@ class SupabaseChatController {
   /// [room] is required, is the controller's reference to the room
   SupabaseChatController({
     this.pageSize = 10,
-    required types.Room room,
-  }) {
+    required Room room,
+  }) : super() {
     _room = room;
     _typingChannel = _client.channel(
       '${_config.realtimeChatTypingUserPrefixChannel}${_room.id}',
-      opts: RealtimeChannelConfig(
+      opts: const RealtimeChannelConfig(
         key: 'typing-state',
       ),
     );
@@ -61,6 +59,7 @@ class SupabaseChatController {
         _typingChannelSubscribed = status == RealtimeSubscribeStatus.subscribed;
       },
     );
+    _initMessages();
   }
 
   SupabaseClient get _client => SupabaseChatCore.instance.client;
@@ -78,33 +77,31 @@ class SupabaseChatController {
   void _onData(
     List<Map<String, dynamic>> newData,
   ) {
+    final currentMessages = List<types.Message>.from(messages);
     for (var val in newData) {
-      final author = _room.users.firstWhere(
-        (u) => u.id == val['authorId'],
-        orElse: () => types.User(id: val['authorId'] as String),
-      );
-      val['author'] = author.toJson();
+      val['authorId'] = val['authorId'];
       val['id'] = val['id'].toString();
       val['roomId'] = val['roomId'].toString();
       final newMessage = types.Message.fromJson(val);
-      final index = _messages.indexWhere((msg) => msg.id == newMessage.id);
+      final index =
+          currentMessages.indexWhere((msg) => msg.id == newMessage.id);
       if (index != -1) {
-        _messages[index] = newMessage;
+        currentMessages[index] = newMessage;
       } else {
-        _messages.add(newMessage);
+        currentMessages.add(newMessage);
       }
     }
-    _messages.sort(
-      (a, b) => b.createdAt?.compareTo(a.createdAt ?? 0) ?? -1,
+    currentMessages.sort(
+      (a, b) =>
+          b.createdAt?.compareTo(
+            a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0),
+          ) ??
+          -1,
     );
-    _messagesController.sink.add(_messages);
+    setMessages(currentMessages);
   }
 
-  /// Returns a stream of messages from Supabase for a specified room.
-  /// Only the amount of messages specified in [pageSize] will be loaded,
-  /// then it will be necessary to call the [loadPreviousMessages] method to get
-  /// the next page of messages
-  Stream<List<types.Message>> get messages {
+  void _initMessages() {
     _messagesQuery().then((value) => _onData(value));
     _client
         .channel('${_config.schema}:${_config.messagesTableName}:${_room.id}')
@@ -117,14 +114,20 @@ class SupabaseChatController {
             column: 'roomId',
             value: _room.id,
           ),
-          callback: (payload) => _onData([payload.newRecord]),
+          callback: (payload) {
+            if (payload.eventType == PostgresChangeEvent.delete) {
+              final id = payload.oldRecord['id'].toString();
+              final msg = messages.firstWhere((e) => e.id == id);
+              removeMessage(msg);
+            } else {
+              _onData([payload.newRecord]);
+            }
+          },
         )
         .subscribe();
-    return _messagesController.stream;
   }
 
-  /// This method allows to receive on the stream [messages] the next
-  /// page
+  /// This method allows to receive the next page
   Future<void> loadPreviousMessages() async {
     _currentPage += 1;
     await _messagesQuery().then((value) => _onData(value));
@@ -137,10 +140,10 @@ class SupabaseChatController {
     if (_typingChannelSubscribed &&
         SupabaseChatCore.instance.loggedSupabaseUser != null) {
       if (_throttleTimer?.isActive ?? false) return;
-      _throttleTimer = Timer(Duration(milliseconds: 500), () {});
+      _throttleTimer = Timer(const Duration(milliseconds: 500), () {});
       _endTypingTimer?.cancel();
       _endTypingTimer = Timer(
-        Duration(seconds: 3),
+        const Duration(seconds: 3),
         () async {
           await _typingChannel.track(_typingInfo(false));
         },
@@ -161,17 +164,22 @@ class SupabaseChatController {
       };
 
   /// Removes message.
-  Future<bool> deleteMessage(String roomId, String messageId) async {
+  @override
+  Future<void> removeMessage(
+    types.Message message, {
+    bool animated = true,
+  }) async {
     final result =
-        await SupabaseChatCore.instance.deleteMessage(roomId, messageId);
+        await SupabaseChatCore.instance.deleteMessage(_room.id, message.id);
     if (result) {
-      _messages.removeWhere((e) => messageId == e.id);
-      _messagesController.sink.add(_messages);
+      await super.removeMessage(message, animated: animated);
     }
-    return result;
   }
 
+  @override
   void dispose() {
     _typingChannel.untrack();
+    _typingController.close();
+    super.dispose();
   }
 }

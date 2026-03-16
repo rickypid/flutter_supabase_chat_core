@@ -308,3 +308,4 @@ Security rules implemented:
 ```
 
 To learn more head over to the [Postgres Row Security Level](https://supabase.com/docs/guides/database/postgres/row-level-security) website.
+

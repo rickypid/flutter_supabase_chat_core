@@ -17,6 +17,7 @@ class SupabaseChatCoreConfig {
     this.realtimeOnlineUserPrefixChannel,
     this.realtimeChatTypingUserPrefixChannel,
     this.chatAssetsBucket,
+    this.notificationsTableName,
   );
 
   /// Property to set database schema name.
@@ -45,4 +46,7 @@ class SupabaseChatCoreConfig {
 
   /// Property to set chat assets bucket.
   final String chatAssetsBucket;
+
+  /// Property to set notifications table name.
+  final String notificationsTableName;
 }

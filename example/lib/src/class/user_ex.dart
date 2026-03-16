@@ -1,7 +1,5 @@
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 
 extension UserEx on types.User {
-  String getUserName() => firstName != null || lastName != null
-      ? '${firstName ?? ''} ${lastName ?? ''}'.trim()
-      : id;
+  String getUserName() => name ?? id;
 }

@@ -1,19 +1,20 @@
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
 import 'package:supabase_flutter/supabase_flutter.dart';
 
+import 'models/room.dart';
+
 /// Extension with one [toShortString] method.
-extension RoleToShortString on types.Role {
+extension RoleToShortString on Role {
   /// Converts enum to the string equal to enum's name.
   String toShortString() => toString().split('.').last;
 }
 
 /// Extension with one [toShortString] method.
-extension RoomTypeToShortString on types.RoomType {
+extension RoomTypeToShortString on RoomType {
   /// Converts enum to the string equal to enum's name.
   String toShortString() => toString().split('.').last;
 }
 
-/// Fetches user from Firebase and returns a promise.
+/// Fetches user from Supabase and returns a promise.
 Future<Map<String, dynamic>> fetchUser(
   SupabaseClient instance,
   String userId,
@@ -28,13 +29,12 @@ Future<Map<String, dynamic>> fetchUser(
           .eq('id', userId)
           .limit(1))
       .first;
-  data['role'] = role;
   return data;
 }
 
-/// Returns a list of [types.Room] created from Firebase query.
+/// Returns a list of [Room] created from Supabase query.
 /// If room has 2 participants, sets correct room name and image.
-Future<List<types.Room>> processRoomsRows(
+Future<List<Room>> processRoomsRows(
   User supabaseUser,
   SupabaseClient instance,
   List<dynamic> rows,
@@ -53,25 +53,20 @@ Future<List<types.Room>> processRoomsRows(
       ),
     );
 
-/// Returns a [types.Room] created from Firebase document.
-Future<types.Room> processRoomRow(
+/// Returns a [Room] created from Supabase document.
+Future<Room> processRoomRow(
   Map<String, dynamic> data,
   User supabaseUser,
   SupabaseClient instance,
   String usersTableName,
   String schema,
 ) async {
-  var imageUrl = data['imageUrl'] as String?;
+  var imageSource = data['imageSource'] as String?;
   var name = data['name'] as String?;
   final type = data['type'] as String;
   final userIds = data['userIds'] as List<dynamic>;
   final userRoles = data['userRoles'] as Map<String, dynamic>?;
-  final users = data['users']?.map(
-        (e) {
-          e['role'] = userRoles?[e['id']];
-          return e;
-        },
-      ).toList() ??
+  final users = data['users']?.toList() ??
       await Future.wait(
         userIds.map(
           (userId) => fetchUser(
@@ -83,33 +78,28 @@ Future<types.Room> processRoomRow(
           ),
         ),
       );
-  if (type == types.RoomType.direct.toShortString()) {
+  if (type == RoomType.direct.toShortString()) {
     final index = users.indexWhere(
       (u) => u['id'] != supabaseUser.id,
     );
     if (index >= 0) {
       final otherUser = users[index];
-      imageUrl = otherUser['imageUrl'] as String?;
-      name = '${otherUser['firstName'] ?? ''} ${otherUser['lastName'] ?? ''}'
-          .trim();
+      imageSource = otherUser['imageSource'] as String?;
+      name = otherUser['name'] as String? ?? '';
     }
   }
-  data['imageUrl'] = imageUrl;
+  data['imageSource'] = imageSource;
   data['name'] = name;
   data['users'] = users;
   data['id'] = data['id'].toString();
   if (data['lastMessages'] != null) {
     final lastMessages = data['lastMessages'].map((lm) {
-      final author = users.firstWhere(
-        (u) => u['id'] == lm['authorId'],
-        orElse: () => {'id': lm['authorId'] as String},
-      );
-      lm['author'] = author;
+      lm['authorId'] = lm['authorId'];
       lm['id'] = lm['id'].toString();
       lm['roomId'] = lm['roomId'].toString();
       return lm;
     }).toList();
     data['lastMessages'] = lastMessages;
   }
-  return types.Room.fromJson(data);
+  return Room.fromJson(data);
 }

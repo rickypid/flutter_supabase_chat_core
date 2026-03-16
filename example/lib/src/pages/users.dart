@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 import 'package:infinite_scroll_pagination/infinite_scroll_pagination.dart';
 
@@ -18,14 +18,19 @@ class _UsersPageState extends State<UsersPage> {
   static const _pageSize = 20;
   String _filter = '';
 
-  final PagingController<int, types.User> _controller =
-      PagingController(firstPageKey: 0);
+  late final PagingController<int, types.User> _controller = PagingController(
+    getNextPageKey: (state) {
+      if (state.keys == null || state.keys!.isEmpty) return 0;
+      final lastItems = state.pages?.last;
+      if (lastItems == null || lastItems.length < _pageSize) return null;
+      return (state.keys?.last ?? 0) + lastItems.length;
+    },
+    fetchPage: (pageKey) => SupabaseChatCore.instance
+        .users(filter: _filter, offset: pageKey, limit: _pageSize),
+  );
 
   @override
   void initState() {
-    _controller.addPageRequestListener((pageKey) {
-      _fetchPage(pageKey);
-    });
     super.initState();
   }
 
@@ -36,30 +41,11 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   void _setFilters(String filter) {
-    WidgetsBinding.instance.addPostFrameCallback((_) {
-      _filter = filter;
-      if (mounted) {
-        _controller.nextPageKey = 0;
-        _controller.refresh();
-      }
-    });
+    _filter = filter;
+    _controller.refresh();
   }
 
-  Future<void> _fetchPage(int offset) async {
-    try {
-      final newItems = await SupabaseChatCore.instance
-          .users(filter: _filter, offset: offset, limit: _pageSize);
-      final isLastPage = newItems.length < _pageSize;
-      if (isLastPage) {
-        _controller.appendLastPage(newItems);
-      } else {
-        final nextPageKey = offset + newItems.length;
-        _controller.appendPage(newItems, nextPageKey);
-      }
-    } catch (error) {
-      _controller.error = error;
-    }
-  }
+  // Rimozione del vecchio _fetchPage
 
   void _handlePressed(types.User otherUser, BuildContext context) async {
     final navigator = Navigator.of(context);
@@ -95,14 +81,18 @@ class _UsersPageState extends State<UsersPage> {
               ),
             ),
             Expanded(
-              child: PagedListView<int, types.User>(
-                pagingController: _controller,
-                builderDelegate: PagedChildBuilderDelegate<types.User>(
-                  itemBuilder: (context, user, index) => UserTile(
-                    user: user,
-                    onTap: (user) {
-                      _handlePressed(user, context);
-                    },
+              child: ValueListenableBuilder<PagingState<int, types.User>>(
+                valueListenable: _controller,
+                builder: (context, state, _) => PagedListView<int, types.User>(
+                  state: state,
+                  fetchNextPage: _controller.fetchNextPage,
+                  builderDelegate: PagedChildBuilderDelegate<types.User>(
+                    itemBuilder: (context, user, index) => UserTile(
+                      user: user,
+                      onTap: (user) {
+                        _handlePressed(user, context);
+                      },
+                    ),
                   ),
                 ),
               ),

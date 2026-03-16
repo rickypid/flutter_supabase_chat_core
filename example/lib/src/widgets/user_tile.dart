@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 
 import '../class/user_ex.dart';
@@ -17,7 +17,7 @@ class UserTile extends StatelessWidget {
 
   Widget _buildAvatar(types.User user) {
     final color = getAvatarColor(user.id);
-    final hasImage = user.imageUrl != null;
+    final hasImage = user.imageSource != null;
     final name = user.getUserName();
     return Container(
       margin: const EdgeInsets.only(right: 16),
@@ -28,7 +28,8 @@ class UserTile extends StatelessWidget {
           children: [
             CircleAvatar(
               backgroundColor: hasImage ? Colors.transparent : color,
-              backgroundImage: hasImage ? NetworkImage(user.imageUrl!) : null,
+              backgroundImage:
+                  hasImage ? NetworkImage(user.imageSource!) : null,
               radius: 20,
               child: !hasImage
                   ? Text(

@@ -5,6 +5,8 @@ export 'src/class/supabase_chat_core.dart';
 export 'src/class/supabase_chat_core_config.dart';
 export 'src/class/upload_asset_result.dart';
 export 'src/class/user_online_status.dart';
+export 'src/models/chat_notification.dart';
+export 'src/models/room.dart';
 export 'src/util.dart';
 export 'src/widgets/user_online_status.dart';
 export 'src/widgets/user_status_observer.dart';

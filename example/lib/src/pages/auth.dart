@@ -1,6 +1,6 @@
 import 'package:faker/faker.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_login/flutter_login.dart';
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -70,9 +70,9 @@ class _AuthScreenState extends State<AuthScreen> {
             );
             await SupabaseChatCore.instance.updateUser(
               types.User(
-                firstName: signupData.additionalSignupData!['first_name'],
                 id: response.user!.id,
-                lastName: signupData.additionalSignupData!['last_name'],
+                name:
+                    '${signupData.additionalSignupData!['first_name']} ${signupData.additionalSignupData!['last_name']}',
               ),
             );
           } catch (e) {

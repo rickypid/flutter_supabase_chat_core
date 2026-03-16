@@ -10,7 +10,7 @@ As mentioned in [How it works?](../introduction/supabase-overview.md#how-it-work
 You can provide values like `firstName`, `imageUrl` and `lastName` if you're planning to have a screen with all users available for chat.
 
 ```dart
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 
 ...
@@ -28,7 +28,7 @@ You can use the `SupabaseChatCore.instance.users()` stream which will return all
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 
 class UsersPage extends StatelessWidget {
@@ -55,7 +55,7 @@ When you have access to that `uid` or you have the whole `User` class from the `
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 
 class UsersPage extends StatelessWidget {
@@ -87,7 +87,7 @@ To render user's rooms you use the `SupabaseChatCore.instance.rooms()` stream. `
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 
 class RoomsPage extends StatelessWidget {
@@ -114,7 +114,7 @@ class RoomsPage extends StatelessWidget {
 
 ```dart
 import 'package:flutter/material.dart';
-import 'package:flutter_chat_types/flutter_chat_types.dart' as types;
+import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
 
 class ChatPage extends StatelessWidget {
@@ -154,3 +154,4 @@ To update the message use `SupabaseChatCore.instance.updateMessage`, it accepts 
 ## `supabaseUser`
 
 `SupabaseChatCore.instance.supabaseUser` is a shortcut you can use to see which user is currently logged in through Supabase Authentication. The returned type comes from the Supabase library and **it is not the same `User` as from the `flutter_chat_types` package**.
+
