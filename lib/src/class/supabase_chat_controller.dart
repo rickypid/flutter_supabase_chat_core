@@ -92,11 +92,8 @@ class SupabaseChatController extends types.InMemoryChatController {
       }
     }
     currentMessages.sort(
-      (a, b) =>
-          b.createdAt?.compareTo(
-            a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0),
-          ) ??
-          -1,
+      (a, b) => (a.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0))
+          .compareTo(b.createdAt ?? DateTime.fromMillisecondsSinceEpoch(0)),
     );
     setMessages(currentMessages);
   }

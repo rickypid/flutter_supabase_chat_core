@@ -21,6 +21,9 @@ dependencies:
   flutter_supabase_chat_core:
     path: ../
   flutter_svg: ^2.2.4
+  flyer_chat_file_message: ^2.4.0
+  flyer_chat_image_message: ^2.3.0
+  flyer_chat_system_message: ^2.2.0
   http: ^1.6.0
   image_picker: ^1.2.1
   infinite_scroll_pagination: ^5.1.1

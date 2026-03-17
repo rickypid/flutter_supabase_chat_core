@@ -6,6 +6,9 @@ import 'package:flutter/services.dart';
 import 'package:flutter_chat_core/flutter_chat_core.dart' as types;
 import 'package:flutter_chat_ui/flutter_chat_ui.dart';
 import 'package:flutter_supabase_chat_core/flutter_supabase_chat_core.dart';
+import 'package:flyer_chat_file_message/flyer_chat_file_message.dart';
+import 'package:flyer_chat_image_message/flyer_chat_image_message.dart';
+import 'package:flyer_chat_system_message/flyer_chat_system_message.dart';
 import 'package:http/http.dart' as http;
 import 'package:image_picker/image_picker.dart';
 import 'package:open_filex/open_filex.dart';
@@ -196,12 +199,49 @@ class _RoomPageState extends State<RoomPage> {
           currentUserId: SupabaseChatCore.instance.loggedSupabaseUser!.id,
           resolveUser: _resolveUser,
           chatController: _chatController,
-          theme: types.ChatTheme.light(),
+          theme: types.ChatTheme.dark(),
           onAttachmentTap: _handleAttachmentPressed,
           onMessageTap: _handleMessageTap,
           onMessageSend: _handleSendPressed,
-          onMessageLongPress: (context, p1,
-              {required index, required details,}) async {
+          builders: types.Builders(
+            fileMessageBuilder: (
+              context,
+              message,
+              index, {
+              required bool isSentByMe,
+              types.MessageGroupStatus? groupStatus,
+            }) =>
+                FlyerChatFileMessage(
+              message: message,
+              index: index,
+            ),
+            imageMessageBuilder: (
+              context,
+              message,
+              index, {
+              required bool isSentByMe,
+              types.MessageGroupStatus? groupStatus,
+            }) =>
+                FlyerChatImageMessage(
+              message: message,
+              index: index,
+              headers: SupabaseChatCore.instance.httpSupabaseHeaders,
+            ),
+            systemMessageBuilder: (
+              context,
+              message,
+              index, {
+              required bool isSentByMe,
+              types.MessageGroupStatus? groupStatus,
+            }) =>
+                FlyerChatSystemMessage(message: message, index: index),
+          ),
+          onMessageLongPress: (
+            context,
+            p1, {
+            required index,
+            required details,
+          }) async {
             final confirm = await showDialog<bool>(
               context: context,
               builder: (context) => AlertDialog(
